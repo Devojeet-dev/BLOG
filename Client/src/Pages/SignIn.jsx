@@ -13,16 +13,17 @@ import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Card } from "@/components/ui/card";
-import { Link } from "react-router-dom";
-import { RouteSignup } from "@/helper";
+import { Link, useNavigate } from "react-router-dom";
+import { RouteIndex, RouteSignup } from "@/helper/RouteName";
+import { showToast } from "@/helper/showToast";
 
 const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8, "Password must be 8 character long.").max(30),
+  email: z.string().email("Invalid email"),
+  password: z.string().min(8, "Password must be 8 characters long").max(30),
 });
 
 function Signin() {
-  // ✅ moved inside component
+  const navigate = useNavigate(); // ✅ useNavigate hook inside component
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -31,14 +32,36 @@ function Signin() {
     },
   });
 
-  function onSubmit(values) {
-    console.log(values);
+  async function onSubmit(values) {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
+        {
+          method: "POST",                   // ✅ POST for login
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",           // ✅ important for cookies & CORS
+          body: JSON.stringify(values),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showToast(data.message || "Something went wrong", "error");
+        return;
+      }
+
+      showToast(data.message || "Login successful", "success");
+      navigate(RouteIndex); // ✅ navigate after successful login
+    } catch (error) {
+      showToast(error.message || "Server error", "error");
+    }
   }
 
   return (
     <div className="flex justify-center items-center w-full min-h-screen">
-      <Card className="w-[400px] p-10 ">
-        <h1 className="text-2xl flex  justify-center ">Login into account</h1>
+      <Card className="w-[400px] p-10">
+        <h1 className="text-2xl flex justify-center mb-6">Login into account</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
@@ -73,10 +96,16 @@ function Signin() {
               )}
             />
 
-            <Button type="submit">Submit</Button>
-            <div className="text-xl flex justify-center gap-2">
-              <p> don't have account?</p>
-              <Link className="text-yellow-800 hover:underline" to={RouteSignup}>SignUp</Link>
+            <Button type="submit">Login</Button>
+
+            <div className="text-xl flex justify-center gap-2 mt-4">
+              <p>Don't have an account?</p>
+              <Link
+                className="text-yellow-800 hover:underline"
+                to={RouteSignup}
+              >
+                Sign Up
+              </Link>
             </div>
           </form>
         </Form>

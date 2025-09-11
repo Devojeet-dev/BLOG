@@ -1,9 +1,8 @@
 import React from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Layout from './layout/Layout'
-import { RouteIndex } from './helper'
 import Index from './Pages'
-import { RouteSignin, RouteSignup } from './helper'
+import { RouteSignin, RouteSignup, RouteIndex } from './helper/RouteName'
 import Signin from './Pages/SignIn'
 import Signup from './Pages/SignUp'
 function App() {

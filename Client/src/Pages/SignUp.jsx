@@ -13,18 +13,16 @@ import * as z from "zod"; // ✅ use * as z
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Card } from "@/components/ui/card";
-import { Link } from "react-router-dom";
-import { RouteSignin } from "@/helper";
+import { Link, useNavigate } from "react-router-dom";
+import { RouteSignin } from "@/helper/RouteName";
+import { showToast } from "@/helper/showToast";
 
 // ✅ fixed schema
 const formSchema = z
   .object({
     name: z.string().min(1, "Name is required"),
     email: z.string().email("Invalid email"),
-    password: z
-      .string()
-      .min(8, "Password must be 8 characters long")
-      .max(30),
+    password: z.string().min(8, "Password must be 8 characters long").max(30),
     confirmpassword: z.string(),
   })
   .refine((data) => data.password === data.confirmpassword, {
@@ -32,7 +30,8 @@ const formSchema = z
     path: ["confirmpassword"], // show error under confirm password field
   });
 
-function Signin() {
+  function Signin() {
+  const navigation = useNavigate();
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -43,8 +42,31 @@ function Signin() {
     },
   });
 
-  function onSubmit(values) {
-    console.log(values);
+  async function onSubmit(values) {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showToast(data.message || "Something went wrong", "error");
+        return;
+      }
+
+      showToast(data.message || "Registration successful", "success");
+      navigation(RouteSignin);
+    } catch (error) {
+      showToast(error.message, "error");
+    }
   }
 
   return (
@@ -116,7 +138,10 @@ function Signin() {
             <Button type="submit">Submit</Button>
             <div className="text-xl flex justify-center gap-2">
               <p>Already have an account?</p>
-              <Link className="text-yellow-800 hover:underline" to={RouteSignin}>
+              <Link
+                className="text-yellow-800 hover:underline"
+                to={RouteSignin}
+              >
                 Sign In
               </Link>
             </div>
