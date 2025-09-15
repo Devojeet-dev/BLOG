@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { RouteSignin } from "@/helper/RouteName";
 import { showToast } from "@/helper/showToast";
+import GoogleLogin from "@/components/GoogleLogin";
 
 // ✅ fixed schema
 const formSchema = z
@@ -30,7 +31,7 @@ const formSchema = z
     path: ["confirmpassword"], // show error under confirm password field
   });
 
-  function Signin() {
+function Signin() {
   const navigation = useNavigate();
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -73,6 +74,15 @@ const formSchema = z
     <div className="flex justify-center items-center w-full min-h-screen">
       <Card className="w-[400px] p-10">
         <h1 className="text-2xl flex justify-center">Create your account</h1>
+        <div>
+          <GoogleLogin />
+          <div className="relative flex items-center my-5">
+            <div className="w-full border-b"></div>
+            <span className="absolute left-1/2 transform -translate-x-1/2 px-2 text-sm bg-white">
+              or
+            </span>
+          </div>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField

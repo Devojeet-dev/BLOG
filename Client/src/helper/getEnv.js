@@ -1,5 +1,3 @@
-export const getEnv = () => {
-  return {
-    API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-  };
+export const getEnv = (key) => {
+  return import.meta.env[key];
 };
