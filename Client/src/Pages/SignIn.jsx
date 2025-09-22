@@ -16,6 +16,10 @@ import { Card } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { RouteIndex, RouteSignup } from "@/helper/RouteName";
 import { showToast } from "@/helper/showToast";
+import GoogleLogin from "@/components/GoogleLogin";
+import { setUser, removeUser } from "@/Redux/user.slice";
+import { getEnv } from "@/helper/getEnv";
+import { useDispatch } from "react-redux";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -23,6 +27,7 @@ const formSchema = z.object({
 });
 
 function Signin() {
+  const dispatch = useDispatch();
   const navigate = useNavigate(); // ✅ useNavigate hook inside component
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -35,11 +40,11 @@ function Signin() {
   async function onSubmit(values) {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
+        `${getEnv("VITE_API_BASE_URL")}/auth/login`,
         {
-          method: "POST",                   // ✅ POST for login
+          method: "POST", // ✅ POST for login
           headers: { "Content-Type": "application/json" },
-          credentials: "include",           // ✅ important for cookies & CORS
+          credentials: "include", // ✅ important for cookies & CORS
           body: JSON.stringify(values),
         }
       );
@@ -52,6 +57,7 @@ function Signin() {
       }
 
       showToast(data.message || "Login successful", "success");
+      dispatch(setUser(data.user));
       navigate(RouteIndex); // ✅ navigate after successful login
     } catch (error) {
       showToast(error.message || "Server error", "error");
@@ -61,7 +67,18 @@ function Signin() {
   return (
     <div className="flex justify-center items-center w-full min-h-screen">
       <Card className="w-[400px] p-10">
-        <h1 className="text-2xl flex justify-center mb-6">Login into account</h1>
+        <h1 className="text-2xl flex justify-center mb-6">
+          Login into account
+        </h1>
+        <div>
+          <GoogleLogin />
+          <div className="relative flex items-center my-5">
+            <div className="w-full border-b"></div>
+            <span className="absolute left-1/2 transform -translate-x-1/2 px-2 text-sm bg-white">
+              or
+            </span>
+          </div>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField

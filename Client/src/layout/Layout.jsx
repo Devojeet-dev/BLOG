@@ -7,9 +7,9 @@ import Footer from '@/components/Footer'
 
 function Layout() {
   return (
-    <>
-      <SidebarProvider>
+    <div className='flex flex-col h-screen'>
       <Topbar />
+      <SidebarProvider>
           <AppSidebar />  
           <main className=' w-full'>
             <div className='w-full min-h-[calc(100vh-40px)]'>
@@ -18,7 +18,7 @@ function Layout() {
             <Footer />
           </main>
       </SidebarProvider>
-    </>
+    </div>
   )
 }
 

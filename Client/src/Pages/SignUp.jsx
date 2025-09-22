@@ -17,6 +17,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { RouteSignin } from "@/helper/RouteName";
 import { showToast } from "@/helper/showToast";
 import GoogleLogin from "@/components/GoogleLogin";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/Redux/user.slice";
 
 // ✅ fixed schema
 const formSchema = z
@@ -31,7 +33,8 @@ const formSchema = z
     path: ["confirmpassword"], // show error under confirm password field
   });
 
-function Signin() {
+function SignUp() {
+  const dispatch = useDispatch()
   const navigation = useNavigate();
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -62,7 +65,7 @@ function Signin() {
         showToast(data.message || "Something went wrong", "error");
         return;
       }
-
+      dispatch(setUser(data.user))
       showToast(data.message || "Registration successful", "success");
       navigation(RouteSignin);
     } catch (error) {
@@ -71,7 +74,7 @@ function Signin() {
   }
 
   return (
-    <div className="flex justify-center items-center w-full min-h-screen">
+    <div className="flex justify-center items-center w-full">
       <Card className="w-[400px] p-10">
         <h1 className="text-2xl flex justify-center">Create your account</h1>
         <div>
@@ -162,4 +165,4 @@ function Signin() {
   );
 }
 
-export default Signin;
+export default SignUp;
