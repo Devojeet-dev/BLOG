@@ -1,9 +1,9 @@
 import { handleError } from "../helpers/handleError.js";
 import User from "../models/user.model.js";
-import bcryptjs, { hashSync } from "bcryptjs";
+import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// Register API
+// ✅ Register API
 export const Register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
@@ -32,36 +32,36 @@ export const Register = async (req, res, next) => {
   }
 };
 
-// login API
+// ✅ Login API
 export const Login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // 1️⃣ Find user by email
-    const User = await User.findOne({ email });
-    if (!User) {
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
       return next(handleError(404, "Invalid login credentials"));
     }
 
-    // 2️⃣ Compare password
-    const isMatch = await bcryptjs.compare(password, User.password);
+    // Compare password
+    const isMatch = await bcryptjs.compare(password, user.password);
     if (!isMatch) {
       return next(handleError(404, "Invalid login credentials"));
     }
 
-    // 3️⃣ Create JWT token
+    // Create JWT
     const token = jwt.sign(
       {
-        _id: User._id,
-        name: User.name,
-        email: User.email,
-        avatar: User.avatar,
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
       },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    // 4️⃣ Send cookie
+    // Set cookie
     res.cookie("access_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -69,14 +69,13 @@ export const Login = async (req, res, next) => {
       path: "/",
     });
 
-    // 5️⃣ Send success response
     res.status(200).json({
       success: true,
       user: {
-        _id: User._id,
-        name: User.name,
-        email: User.email,
-        avatar: User.avatar,
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
       },
       message: "Login successful",
     });
@@ -86,17 +85,15 @@ export const Login = async (req, res, next) => {
   }
 };
 
-//Google login API
+// ✅ Google Login API
 export const GoogleLogin = async (req, res, next) => {
   try {
     const { name, email, avatar } = req.body;
 
-    // 1️⃣ Find user by email
     let user = await User.findOne({ email });
 
-    // 2️⃣ If user doesn’t exist, create new one
     if (!user) {
-      const randomPassword = Math.random().toString(36).slice(-8); // safer random string
+      const randomPassword = Math.random().toString(36).slice(-8);
       const hashedPassword = await bcryptjs.hash(randomPassword, 10);
 
       const newUser = new User({
@@ -109,7 +106,6 @@ export const GoogleLogin = async (req, res, next) => {
       user = await newUser.save();
     }
 
-    // 3️⃣ Create JWT token
     const token = jwt.sign(
       {
         _id: user._id,
@@ -121,7 +117,6 @@ export const GoogleLogin = async (req, res, next) => {
       { expiresIn: "1d" }
     );
 
-    // 4️⃣ Send cookie
     res.cookie("access_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -129,7 +124,6 @@ export const GoogleLogin = async (req, res, next) => {
       path: "/",
     });
 
-    // 5️⃣ Send success response
     res.status(200).json({
       success: true,
       user: {
@@ -142,6 +136,26 @@ export const GoogleLogin = async (req, res, next) => {
     });
   } catch (error) {
     console.error(error);
+    next(handleError(500, error.message));
+  }
+};
+
+// ✅ Logout API
+export const Logout = async (req, res, next) => {
+  try {
+    // Clear the JWT cookie
+    res.clearCookie("access_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
     next(handleError(500, error.message));
   }
 };
